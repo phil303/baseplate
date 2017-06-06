@@ -55,8 +55,9 @@ class BaseplateConfigurator(object):
 
     :param baseplate.core.Baseplate baseplate: The Baseplate instance for your
         application.
-    :param bool trust_trace_headers: Should this app trust trace headers from
-        the client? If ``False``, trace IDs will be generated for each request.
+    :param bool trust_trace_headers: Should this application trust trace
+        headers from the client? If ``False``, trace IDs will be generated for
+        each request.
 
     .. warning::
 

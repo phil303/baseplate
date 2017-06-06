@@ -44,13 +44,16 @@ class Flags(object):
 
 
 def decompress_and_load(key, serialized, flags):
-    """Deserialization method compatible with dump_and_compress().
+    """Modern deserialization method.
+
+    This should be paired with
+    :py:func:`~baseplate.context.memcache.lib.make_dump_and_compress_fn`.
 
     :param str key: the memcached key.
     :param str serialized: the serialized object returned from memcached.
     :param int flags: value stored and returned from memcached for the client
         to use to indicate how the value was serialized.
-    :returns str value: the deserialized value.
+    :returns: The deserialized value.
 
     """
 
@@ -81,16 +84,20 @@ def decompress_and_load(key, serialized, flags):
 
 
 def make_dump_and_compress_fn(min_compress_length=0, compress_level=1):
-    """Create a serialization method compatible with decompress_and_load().
+    """Create a modern serializer method.
 
-    The resulting method is a chain of json.loads and zlib compression. Values
-    that are not json serializable will result in a TypeError.
+    This should be paired with
+    :py:func:`~baseplate.context.memcache.lib.decompress_and_load`.
+
+    The resulting method is a chain of :py:func:`json.loads` and ``zlib``
+    compression. Values that are not JSON serializable will result in a
+    :py:exc:`TypeError`.
 
     :param int min_compress_length: the minimum serialized string length to
         enable zlib compression. 0 disables compression.
     :param int compress_level: zlib compression level. 0 disables compression
         and 9 is the maximum value.
-    :returns func memcache_serializer: the serializer method.
+    :returns: The serializer.
 
     """
 
@@ -103,7 +110,7 @@ def make_dump_and_compress_fn(min_compress_length=0, compress_level=1):
         :param str key: the memcached key.
         :param value: python object to be serialized and set to memcached.
         :returns: value serialized as str, flags int.
-        :raises ValueError: if `value` is not json serializable
+        :raises ValueError: if `value` is not JSON serializable
 
         """
 
@@ -152,15 +159,16 @@ class PickleFlags(object):
 def decompress_and_unpickle(key, serialized, flags):
     """Deserialization method compatible with pickle_and_compress().
 
+    .. warning:: Please don't use this! Unless you really need backwards
+        compatibility with already stored picked values you should use the JSON
+        serialization provided by
+        :py:func:`~baseplate.context.memcache.lib.decompress_and_load`.
+
     :param str key: the memcached key.
     :param str serialized: the serialized object returned from memcached.
     :param int flags: value stored and returned from memcached for the client
         to use to indicate how the value was serialized.
     :returns str value: the deserialized value.
-
-    .. warning:: Please don't use this! Unless you really need backwards
-        compatibility with already stored picked values you should use the
-        json serialization provided by :py:func:`baseplate.context.memcache.lib.decompress_and_load`.
 
     """
 
@@ -191,21 +199,24 @@ def decompress_and_unpickle(key, serialized, flags):
 
 
 def make_pickle_and_compress_fn(min_compress_length=0, compress_level=1):
-    """Create a serialization method compatible with decompress_and_unpickle().
+    """Create a legacy serializer.
 
-    The resulting method is a chain of pickling and zlib compression.
+    The resulting method is a chain of :py:func:`pickle.dumps` and ``zlib``
+    compression. This should be paired with
+    :py:func:`~baseplate.context.memcache.lib.decompress_and_unpickle`.
 
-    This serializer is compatible with pylibmc.
+    This serializer is compatible with :py:mod:`pylibmc`.
+
+    .. warning:: Please don't use this! Unless you really need backwards
+        compatibility with already stored picked values you should use the JSON
+        serialization provided by
+        :py:func:`~baseplate.context.memcache.lib.make_dump_and_compress_fn`.
 
     :param int min_compress_length: the minimum serialized string length to
         enable zlib compression. 0 disables compression.
     :param int compress_level: zlib compression level. 0 disables compression
         and 9 is the maximum value.
     :returns func memcache_serializer: the serializer method.
-
-    .. warning:: Please don't use this! Unless you really need backwards
-        compatibility with already stored picked values you should use the
-        json serialization provided by :py:func:`baseplate.context.memcache.lib.make_dump_and_compress_fn`.
 
     """
 
