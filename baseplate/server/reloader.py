@@ -10,6 +10,7 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+import asyncio
 import logging
 import os
 import re
@@ -18,7 +19,10 @@ import threading
 import time
 
 
+
 logger = logging.getLogger(__name__)
+
+RESCAN_INTERVAL = 0.5
 
 
 def _get_loaded_modules():
@@ -38,7 +42,7 @@ def _get_watched_files(extra_files):
         yield filename
 
 
-def _reload_when_files_change(extra_files):
+def _reload_when_files_change(extra_files, use_asyncio=False):
     """Scan all watched files periodically and re-exec if anything changed."""
     initial_mtimes = {}
     while True:
@@ -53,13 +57,19 @@ def _reload_when_files_change(extra_files):
                 logger.debug("Reloading, %s changed", filename)
                 os.execl(sys.executable, sys.executable, *sys.argv)
 
-        time.sleep(.25)
+        if use_asyncio:
+            asyncio.sleep(RESCAN_INTERVAL)
+        else:
+            time.sleep(RESCAN_INTERVAL)
 
 
-def start_reload_watcher(extra_files):
+def start_reload_watcher(extra_files, use_asyncio=False):
     """Start a task that will restart the server if any source files change."""
-    thread = threading.Thread(
-        target=_reload_when_files_change, args=(extra_files,))
-    thread.name = "baseplate reloader"
-    thread.daemon = True
-    thread.start()
+    if use_asyncio:
+        _reload_when_files_change(extra_files, use_asyncio)
+    else:
+        thread = threading.Thread(
+            target=_reload_when_files_change, args=(extra_files,))
+        thread.name = "baseplate reloader"
+        thread.daemon = True
+        thread.start()

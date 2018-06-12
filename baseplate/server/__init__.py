@@ -175,7 +175,10 @@ def load_app_and_run_server():
         einhorn.ack_startup()
 
     if args.reload:
-        reloader.start_reload_watcher(extra_files=[args.config_file.name])
+        reloader.start_reload_watcher(
+            extra_files=[args.config_file.name],
+            use_asyncio=True,
+        )
 
     logger.info("Listening on %s", listener.getsockname())
 
